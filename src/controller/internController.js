@@ -2,7 +2,7 @@ const collegeModel=require("../models/collegeModel")
 const internModel=require("../models/internModel")
 
 const isEmpty=function(value){
-    return Object.keys(value).length.length>0   
+    return Object.keys(value).length>0   
  }
  
  const isValid=function(value){
@@ -11,7 +11,7 @@ const isEmpty=function(value){
      return true
  }
  
- const nameRegx=/^[A-Za-z\s-]{1,}$/
+ //const nameRegx=/^[A-Za-z\s-]{1,}$/
 
 const createInterns=async function(req,res){
     try{
@@ -19,53 +19,55 @@ const createInterns=async function(req,res){
         if(!isEmpty(data)){
             return res.status(400).send({status:false,message:"please provide the details"})
         }
-        const {name,mobile,email,collegeName}=data
-        if(!isValid(name)){
+        if(!isValid(data.name)){
             return res.status(400).send({status:false,message:"please provide the name"})
         }
-        if(!nameRegx.test(name)){
-            return res.status(400).send({status:false,message:"please provide the valid name"})
-        }
+        // if(!nameRegx.test(name)){
+        //     return res.status(400).send({status:false,message:"please provide the valid name"})
+        // }
 
-        if(!isValid(mobile)){
+        if(!isValid(data.mobile)){
             return res.status(400).send({status:false,message:"please provide the mobile"})
         }
-        if(/^\d{10}$/.test(mobile)){ //doubt
+        let mobileReg=/^\d{10}$/
+        if(!mobileReg.test(data.mobile)){ 
             return res.status(400).send({status:false,message:"please enter 10 digits valid  mobile number"})
         }
-        const checkMobile=await internModel.findOne(mobile)
+        const checkMobile=await internModel.findOne({mobile:data.mobile})
         if(checkMobile){
-            return res.status(400).send({status:false,message:"this phone no is already register"})//dount in status code
+            return res.status(400).send({status:false,message:"this phone no is already register"})
         }
         
-        if(!isValid(email)){
+        if(!isValid(data.email)){
             return res.status(400).send({status:false,message:"please provide the email"})
         }
-        if (!/^[a-z0-9]{1,}@g(oogle)?mail\.com$/.test(email)) {
-           return  res.status(400).send({ status: false, message: "Email should be in valid format" })//status code
+        if (!/^[a-z0-9]{1,}@g(oogle)?mail\.com$/.test(data.email)) {
+           return  res.status(400).send({ status: false, message: "Email should be in valid format" })
            
         }
-        const checkemail=await internModel.findOne(email)
+        const checkemail=await internModel.findOne({email:data.email})
         if(checkemail){
             return res.send({status:false,message:"this email is already register"})
         }
 
-        if(!isValid(collegeName)){
+        if(!isValid(data.collegeName)){
             return res.status(400).send({status:false,message:"please provide the college name"})
         }
-        if(!nameRegx.test(collegeName)){
-            return res.status(400).send({status:false,message:"please provide the valid college name"})
-        }
-        const checkClg=await collegeModel.findOne({collegeName:collegeName})//doubt
+        // if(!nameRegx.test(collegeName)){
+        //     return res.status(400).send({status:false,message:"please provide the valid college name"})
+        // }
+        const checkClg=await collegeModel.findOne({name:data.collegeName,isDeleted:false})
         if(!checkClg){
             return res.status(400).send({status:false,message:"this college is not register"})//status code
         }
-
-        const internCreated=await internModel.create(name,mobile,{collegeId:checkClg._id},email)//doubt
-        return res.status(201).send({status:true,data:internCreated,message:"created succesfull"})
+        data.collegeId=checkClg._id
+        const internCreated=await internModel.create(data)
+        let {name,fullName,email,mobile,collegeId,isDeleted}=internCreated
+        let dataSend={name,fullName,email,mobile,collegeId,isDeleted}
+        return res.status(201).send({status:true,data:dataSend})
 
     }catch(err){
-        return res.status(500).send(err.messege)
+        return res.status(500).send({status:false,message:err.message})
     }
 }
 
