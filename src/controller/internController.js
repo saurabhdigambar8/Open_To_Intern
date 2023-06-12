@@ -1,6 +1,6 @@
 const collegeModel=require("../models/collegeModel")
 const internModel=require("../models/internModel")
-
+const emailChecker=require("email-validator")
 const isEmpty=function(value){
     return Object.keys(value).length>0   
  }
@@ -41,10 +41,15 @@ const createInterns=async function(req,res){
         if(!isValid(data.email)){
             return res.status(400).send({status:false,message:"please provide the email"})
         }
-        if (!/^[a-z0-9]{1,}@g(oogle)?mail\.com$/.test(data.email)) {
-           return  res.status(400).send({ status: false, message: "Email should be in valid format" })
+        // if (!/^[a-z0-9]{1,}@g(oogle)?mail\.com$/.test(data.email)) {
+        //    return  res.status(400).send({ status: false, message: "Email should be in valid format" })
            
-        }
+        // }
+        if (!emailChecker.validate(data.email)) {
+            return  res.status(400).send({ status: false, message: "Email should be in valid format" })
+            
+         }
+
         const checkemail=await internModel.findOne({email:data.email})
         if(checkemail){
             return res.send({status:false,message:"this email is already register"})
