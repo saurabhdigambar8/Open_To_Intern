@@ -52,7 +52,7 @@ const createInterns=async function(req,res){
 
         const checkemail=await internModel.findOne({email:data.email})
         if(checkemail){
-            return res.send({status:false,message:"this email is already register"})
+            return res.status(400).send({status:false,message:"this email is already register"})
         }
 
         if(!isValid(data.collegeName)){
